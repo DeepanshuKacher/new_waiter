@@ -5,7 +5,10 @@ import OrderDetailDialog from "../../components/OrderDetail.Modal";
 import { useAppSelector } from "../../useFullItems/redux-store";
 import { fetchOrders } from "./hooks/fetchOrders";
 import { Dish } from "../../interfaces";
-import { axiosDeleteFunction } from "../../useFullItems/axios";
+import {
+  axiosDeleteFunction,
+  axiosPostFunction,
+} from "../../useFullItems/axios";
 import { RootTabScreenProps } from "../../types";
 
 export interface Order {
@@ -55,6 +58,17 @@ function Summary({ navigation }: RootTabScreenProps<"Tables">) {
       totalPrice += calculatePrice(x, dish);
     }
     return totalPrice;
+  };
+
+  const generateBillingNotification = () => {
+    axiosPostFunction({
+      parentUrl: "sessions",
+      childUrl: "closeNotification",
+      data: {
+        tableSectionId: selectedTableSection.id,
+        tableNumber: tableNumber,
+      },
+    });
   };
 
   const calculatePrice = (order: Order, dish?: Dish) => {
@@ -161,6 +175,18 @@ function Summary({ navigation }: RootTabScreenProps<"Tables">) {
                 {tableSessions ? "Clear Session" : "Back To Home"}
               </Button>
             )}
+
+            <Button
+              mode="contained-tonal"
+              style={{
+                // marginTop: 15,
+                marginVertical: 15,
+                backgroundColor: tableSessions ? MD2Colors.red100 : "red",
+              }}
+              onPress={generateBillingNotification}
+            >
+              Generate Billing Notification
+            </Button>
           </>
         }
         style={
