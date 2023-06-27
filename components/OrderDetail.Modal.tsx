@@ -1,8 +1,23 @@
-import * as React from "react";
-import { Dimensions, ScrollView, StyleSheet, View } from "react-native";
-import { Button, Portal, Dialog, Text, DataTable } from "react-native-paper";
+import { useState } from "react";
+import {
+  Dimensions,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from "react-native";
+import {
+  Button,
+  Portal,
+  Dialog,
+  Text,
+  DataTable,
+  TextInput,
+} from "react-native-paper";
 import { Dish } from "../interfaces";
-import { Order } from "../screens/summary";
+import { RedisOrder } from "../screens/cart";
+import { Order } from "../screens/summary/hooks/fetchOrders";
+import { AntDesign } from "@expo/vector-icons";
 
 const OrderDetailDialog = ({
   close,
@@ -13,6 +28,19 @@ const OrderDetailDialog = ({
   dish?: Dish;
   close: () => void;
 }) => {
+  const [editMode, setEditMode] = useState<"half" | "full" | undefined>();
+  const [newQuantity, setNewQuantity] = useState("");
+
+  const editQuantity = (halfFull: keyof Dish["price"]["large"]) => {
+    setEditMode(halfFull);
+
+    if (halfFull === "full") {
+      if (order?.fullQuantity) setNewQuantity(order?.fullQuantity?.toString());
+    } else if (halfFull === "half") {
+      if (order?.halfQuantity) setNewQuantity(order?.halfQuantity?.toString());
+    }
+  };
+
   return (
     <Portal>
       <Dialog
@@ -26,8 +54,26 @@ const OrderDetailDialog = ({
             <DataTable>
               <DataTable.Header>
                 <DataTable.Title> </DataTable.Title>
-                <DataTable.Title>Full</DataTable.Title>
-                <DataTable.Title>Half</DataTable.Title>
+                <DataTable.Title>
+                  Full
+                  {order?.fullQuantity ? (
+                    <AntDesign
+                      onPress={() => editQuantity("full")}
+                      name="edit"
+                      size={20}
+                    />
+                  ) : null}
+                </DataTable.Title>
+                <DataTable.Title>
+                  Half
+                  {order?.halfQuantity ? (
+                    <AntDesign
+                      onPress={() => editQuantity("half")}
+                      name="edit"
+                      size={20}
+                    />
+                  ) : null}
+                </DataTable.Title>
               </DataTable.Header>
 
               {/* {order?.size === "Large" && ( */}
@@ -68,11 +114,24 @@ const OrderDetailDialog = ({
           </View> */}
             {order?.user_description && (
               <Text variant="bodyLarge">
-                Description:- {order.user_description}
+                Description:- {order?.user_description}
               </Text>
             )}
           </ScrollView>
         </Dialog.ScrollArea>
+        {/* <View style={{ flexDirection: "row" }}> */}
+        {editMode ? (
+          <>
+            <TextInput
+              placeholder="New value"
+              value={newQuantity}
+              onChangeText={setNewQuantity}
+              keyboardType="numeric"
+            />
+            <Button onPress={() => console.log("Pressed")}>Submit</Button>
+          </>
+        ) : null}
+        {/* </View> */}
       </Dialog>
     </Portal>
   );

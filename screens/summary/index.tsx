@@ -3,28 +3,13 @@ import { FlatList, Alert } from "react-native";
 import { Divider, List, Text, Button, MD2Colors } from "react-native-paper";
 import OrderDetailDialog from "../../components/OrderDetail.Modal";
 import { useAppSelector } from "../../useFullItems/redux-store";
-import { fetchOrders } from "./hooks/fetchOrders";
+import { Kot, Order, fetchOrders } from "./hooks/fetchOrders";
 import { Dish } from "../../interfaces";
 import {
   axiosDeleteFunction,
   axiosPostFunction,
 } from "../../useFullItems/axios";
 import { RootTabScreenProps } from "../../types";
-
-export interface Order {
-  dishId: string;
-  orderedBy: string;
-  orderId: string;
-  restaurantId: string;
-  tableNumber: string;
-  tableSectionId: string;
-  user_description?: string;
-  size: "large" | "medium" | "small";
-  fullQuantity?: number;
-  halfQuantity?: number;
-  chefAssign: string | undefined;
-  completed: boolean;
-}
 
 function Summary({ navigation }: RootTabScreenProps<"Tables">) {
   const [showOrderInfo, setOrderInfo] = useState<Order>();
@@ -47,15 +32,17 @@ function Summary({ navigation }: RootTabScreenProps<"Tables">) {
     (store) => store.tableStatus.tableDetail
   )?.[selectedTableSection.id]?.[tableNumber];
 
-  const orders = fetchOrders(tableSessions!);
+  const kot = fetchOrders(tableSessions!);
 
   const toggleShowOrderInfo = () => setOrderInfo(undefined);
 
   const totalPrice = () => {
     let totalPrice = 0;
-    for (let x of orders) {
-      const dish = dishesh.find((dish) => dish.id === x.dishId);
-      totalPrice += calculatePrice(x, dish);
+    for (let x of kot) {
+      for (let y of x?.value?.orders) {
+        const dish = dishesh.find((dish) => dish.id === y.dishId);
+        totalPrice += calculatePrice(y, dish);
+      }
     }
     return totalPrice;
   };
@@ -81,23 +68,31 @@ function Summary({ navigation }: RootTabScreenProps<"Tables">) {
     return returnPrice;
   };
 
-  const keyExtractor = (item: Order) => item.orderId;
+  const keyExtractor = (item: Kot, index: number) => index + "A";
 
-  const renderItem = ({ item }: { item: Order }) => {
-    const dish = dishesh.find((dish) => dish.id === item.dishId);
+  const renderItem = ({ item }: { item: Kot }) => {
     return (
-      <List.Item
-        title={dish?.name}
-        onPress={() => {
-          setOrderInfo(item);
-          setOrderDish(dish);
-        }}
-        right={() => (
-          <Text style={{ fontWeight: "bold" }}>
-            ₹ {calculatePrice(item, dish)}
-          </Text>
-        )}
-      />
+      <>
+        {item?.value?.orders?.map((order) => {
+          const dish = dishesh.find((dish) => dish.id === order.dishId);
+
+          return (
+            <List.Item
+              key={order.orderId}
+              title={dish?.name}
+              onPress={() => {
+                setOrderInfo(order);
+                setOrderDish(dish);
+              }}
+              right={() => (
+                <Text style={{ fontWeight: "bold" }}>
+                  ₹ {calculatePrice(order, dish)}
+                </Text>
+              )}
+            />
+          );
+        })}
+      </>
     );
   };
 
@@ -197,7 +192,7 @@ function Summary({ navigation }: RootTabScreenProps<"Tables">) {
         ItemSeparatorComponent={Divider}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
-        data={orders}
+        data={kot}
       />
     </>
   );

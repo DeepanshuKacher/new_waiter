@@ -9,13 +9,37 @@ import {
 } from "react-native-paper";
 import OrderDetailDialog from "../../components/OrderDetail.Modal";
 import { useAppSelector } from "../../useFullItems/redux-store";
-import { Order } from "../summary";
 import { Dish } from "../../interfaces";
 import {
   axiosDeleteFunction,
   axiosGetFunction,
   axiosPostFunction,
 } from "../../useFullItems/axios";
+import { Order } from "../summary";
+
+interface RedisOrderValue {
+  size: Order["size"];
+  fullQuantity: string;
+  halfQuantity: string;
+  user_description: string;
+  cart: string;
+  sessionId: string;
+  createdAt: string;
+  orderedBy: string;
+  chefAssign: string;
+  completed: string;
+  tableSectionId: string;
+  tableNumber: string;
+  restaurantId: string;
+  kotNo: string;
+  dishId: string;
+  orderNumber: string;
+}
+
+export interface RedisOrder {
+  id: `order:${string}`;
+  value: RedisOrderValue;
+}
 
 function Cart() {
   /* store or states */
@@ -31,10 +55,10 @@ function Cart() {
     (store) => store.tableStatus.tableDetail
   )?.[selectedTableSection.id]?.[tableNumber];
 
-  const [showOrderInfo, setOrderInfo] = useState<Order>();
+  const [showOrderInfo, setOrderInfo] = useState<RedisOrder>();
   const [orderDish, setOrderDish] = useState<Dish>();
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
-  const [cartOrders, setCartOrders] = useState<Order[]>([]);
+  const [cartOrders, setCartOrders] = useState<RedisOrder[]>([]);
 
   /* useEffect */
 
@@ -43,7 +67,7 @@ function Cart() {
     if (cartOrders.length > 0) {
       const temp = [];
       for (let x of cartOrders) {
-        temp.push(x?.orderId);
+        temp.push(x?.id);
       }
       setSelectedOrders(temp);
     }
@@ -104,13 +128,13 @@ function Cart() {
     }
   };
 
-  const keyExtractor = (item: Order) => item.orderId;
+  const keyExtractor = (item: RedisOrder) => item.id;
 
-  const renderItem = ({ item }: { item: Order }) => {
-    const dish = dishesh.find((dish) => dish.id === item.dishId);
+  const renderItem = ({ item }: { item: RedisOrder }) => {
+    const dish = dishesh.find((dish) => dish.id === item?.value?.dishId);
     return (
       <TouchableRipple
-        onPress={() => toggleItemSelect(item.orderId)}
+        onPress={() => toggleItemSelect(item.id)}
         onLongPress={() => {
           setOrderInfo(item);
           setOrderDish(dish);
@@ -129,7 +153,7 @@ function Cart() {
           <View pointerEvents="none">
             <Checkbox
               status={
-                selectedOrders.includes(item.orderId) ? "checked" : "unchecked"
+                selectedOrders.includes(item.id) ? "checked" : "unchecked"
               }
             />
           </View>
