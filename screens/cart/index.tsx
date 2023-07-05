@@ -15,7 +15,8 @@ import {
   axiosGetFunction,
   axiosPostFunction,
 } from "../../useFullItems/axios";
-import { Order } from "../summary";
+import { Order } from "../summary/hooks/fetchOrders";
+// import { Order } from "../summary";
 
 interface RedisOrderValue {
   size: Order["size"];
@@ -92,7 +93,7 @@ function Cart() {
     axiosDeleteFunction({
       parentUrl: "cart",
       data: {
-        tableSessionId: tableSession,
+        // tableSessionId: tableSession,
         cartOrder: selectedOrders,
       },
       thenFunction: fetchAndStoreCart,
