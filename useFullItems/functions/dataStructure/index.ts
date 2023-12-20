@@ -1,29 +1,57 @@
-import { Dish, PriceStructure } from "../../../interfaces";
+import { Dish, Order, OrderReturnFromRedis, PriceStructure } from "../../../interfaces";
 
 export const foodPriceDataStructure = (dishDetail: Dish) => {
   const foodPrice: PriceStructure = {};
 
-  if (dishDetail?.FullLarge_Price || dishDetail?.HalfLarge_Price) {
-    foodPrice.Large = {};
-    if (dishDetail.FullLarge_Price)
-      foodPrice.Large.full = dishDetail.FullLarge_Price;
-    if (dishDetail.HalfLarge_Price)
-      foodPrice.Large.half = dishDetail.HalfLarge_Price;
+  if (dishDetail?.price.large) {
+    foodPrice.Large = {
+      full: dishDetail.price.large.full,
+      half: dishDetail.price.large.half,
+    };
   }
-  if (dishDetail?.FullMedium_Price || dishDetail?.HalfMedium_Price) {
-    foodPrice.Medium = {};
-    if (dishDetail.FullMedium_Price)
-      foodPrice.Medium.full = dishDetail.FullMedium_Price;
-    if (dishDetail.HalfMedium_Price)
-      foodPrice.Medium.half = dishDetail.HalfMedium_Price;
+  if (dishDetail?.price.medium) {
+    foodPrice.Medium = {
+      full: dishDetail.price.medium.full,
+      half: dishDetail.price.medium.half,
+    };
   }
-  if (dishDetail?.FullSmall_Price || dishDetail?.HalfSmall_Price) {
-    foodPrice.Small = {};
-    if (dishDetail.FullSmall_Price)
-      foodPrice.Small.full = dishDetail.FullSmall_Price;
-    if (dishDetail.HalfSmall_Price)
-      foodPrice.Small.half = dishDetail.HalfSmall_Price;
+  if (dishDetail?.price.small) {
+    foodPrice.Small = {
+      full: dishDetail.price.small.full,
+      half: dishDetail.price.small.half,
+    };
   }
 
   return foodPrice;
 };
+
+
+export const convertRedisOrderToOrder = (redisOrder: OrderReturnFromRedis): Order => {
+
+  const {
+    createdAt,
+    dishId,
+    fullQuantity,
+    halfQuantity,
+    kotId,
+    orderedBy,
+    orderId,
+    restaurantId,
+    sessionId,
+    size,
+    tableNumber,
+    tableSectionId,
+    chefAssign,
+    completed,
+    user_description
+  } = redisOrder
+
+  return {
+    createdAt: parseInt(createdAt),
+    dishId, fullQuantity: parseInt(fullQuantity),
+    halfQuantity: parseInt(halfQuantity), kotId, orderedBy,
+    orderId, restaurantId, sessionId, size, tableNumber: parseInt(tableNumber),
+    tableSectionId, chefAssign, completed, user_description
+  }
+
+}

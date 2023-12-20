@@ -34,7 +34,7 @@ export const mqttClient = async (restaurantId: string) => {
   });
   client.onConnectionLost = () => {
     if (constants.IS_DEVELOPMENT) console.log("mqtt connection lost");
-    if (constants.IS_DEVELOPMENT === false)
+    // if (constants.IS_DEVELOPMENT === false)
       setTimeout(() => {
         if (client.isConnected() === false) {
           Alert.alert("Connection lost please restart app", undefined, [

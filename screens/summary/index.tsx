@@ -3,13 +3,14 @@ import { FlatList, Alert } from "react-native";
 import { Divider, List, Text, Button, MD2Colors } from "react-native-paper";
 import OrderDetailDialog from "../../components/OrderDetail.Modal";
 import { useAppSelector } from "../../useFullItems/redux-store";
-import { Kot, Order, fetchOrders } from "./hooks/fetchOrders";
-import { Dish } from "../../interfaces";
+import { fetchOrders } from "./hooks/fetchOrders";
+import { Dish, Order, RetreveKotJson } from "../../interfaces";
 import {
   axiosDeleteFunction,
   axiosPostFunction,
 } from "../../useFullItems/axios";
 import { RootTabScreenProps } from "../../types";
+import { convertRedisOrderToOrder } from "../../useFullItems/functions";
 
 function Summary({ navigation }: RootTabScreenProps<"Tables">) {
   const [showOrderInfo, setOrderInfo] = useState<Order>();
@@ -39,10 +40,8 @@ function Summary({ navigation }: RootTabScreenProps<"Tables">) {
   const totalPrice = () => {
     let totalPrice = 0;
     for (let x of kot) {
-      for (let y of x?.value?.orders) {
-        const dish = dishesh.find((dish) => dish.id === y.dishId);
-        totalPrice += calculatePrice(y, dish);
-      }
+      const dish = dishesh.find((dish) => dish.id === x.value.dishId);
+      totalPrice += calculatePrice(convertRedisOrderToOrder(x.value), dish);
     }
     return totalPrice;
   };
@@ -68,32 +67,50 @@ function Summary({ navigation }: RootTabScreenProps<"Tables">) {
     return returnPrice;
   };
 
-  const keyExtractor = (item: Kot, index: number) => index + "A";
+  const keyExtractor = (item: RetreveKotJson) => item.id
 
-  const renderItem = ({ item }: { item: Kot }) => {
+  const renderItem = ({ item }: { item: RetreveKotJson }) => {
+    const order = item;
+    const dish = dishesh.find((dish) => dish.id === order.value.dishId);
     return (
-      <>
-        {item?.value?.orders?.map((order) => {
-          const dish = dishesh.find((dish) => dish.id === order.dishId);
-
-          return (
-            <List.Item
-              key={order.orderId}
-              title={dish?.name}
-              onPress={() => {
-                setOrderInfo(order);
-                setOrderDish(dish);
-              }}
-              right={() => (
-                <Text style={{ fontWeight: "bold" }}>
-                  ₹ {calculatePrice(order, dish)}
-                </Text>
-              )}
-            />
-          );
-        })}
-      </>
+      <List.Item
+        key={order.id}
+        title={dish?.name}
+        onPress={() => {
+          setOrderInfo(convertRedisOrderToOrder(order.value));
+          setOrderDish(dish);
+        }}
+        right={() => (
+          <Text style={{ fontWeight: "bold" }}>
+            ₹ {calculatePrice(convertRedisOrderToOrder(order.value), dish)}
+          </Text>
+        )}
+      />
     );
+
+    // return (
+    //   <>
+    //     {item.map((order) => {
+    //       const dish = dishesh.find((dish) => dish.id === order.value.dishId);
+
+    //       return (
+    //         <List.Item
+    //           key={order.id}
+    //           title={dish?.name}
+    //           onPress={() => {
+    //             setOrderInfo(convertRedisOrderToOrder(order.value));
+    //             setOrderDish(dish);
+    //           }}
+    //           right={() => (
+    //             <Text style={{ fontWeight: "bold" }}>
+    //               ₹ {calculatePrice(convertRedisOrderToOrder(order.value), dish)}
+    //             </Text>
+    //           )}
+    //         />
+    //       );
+    //     })}
+    //   </>
+    // );
   };
 
   const clearSession = () => {

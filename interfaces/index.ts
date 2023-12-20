@@ -4,6 +4,8 @@ export type {
   Table,
 } from "../useFullItems/redux-store/restaurant";
 
+export type * from './OrdersStuff'
+
 export type { SettingType } from "../useFullItems/redux-store/settings";
 
 export interface PriceStructure {
